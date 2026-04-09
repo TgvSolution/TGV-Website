@@ -42,7 +42,7 @@ export function ContactForm() {
   };
 
   const inputClass =
-    "w-full bg-transparent border border-border px-5 py-4 text-sm font-light placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-300 autofill:bg-transparent";
+    "w-full bg-white/5 border border-white/20 px-5 py-4 text-sm font-light text-white placeholder:text-white/40 focus:outline-none focus:border-primary focus:bg-white/8 transition-colors duration-300";
 
   return (
     <div className="grid lg:grid-cols-2 gap-16 items-start">
