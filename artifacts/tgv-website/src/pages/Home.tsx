@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Menu, X, Code, Shield, Server, CheckCircle2, ChevronRight, Mail, Phone, MapPin } from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
+import { ContactForm } from "../components/ContactForm";
 
 export default function Home() {
   const { t, lang, setLang } = useLanguage();
@@ -297,31 +298,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Contact Form Section */}
       <section id="contact" className="py-32 relative border-t border-border overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src="/images/tgv-custom-dev.png" 
             alt="Development Background" 
-            className="w-full h-full object-cover opacity-10 object-right grayscale"
+            className="w-full h-full object-cover opacity-5 object-right grayscale"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/80" />
         </div>
         
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl md:text-6xl font-serif font-medium mb-6 leading-tight">
-              {t("cta.title")} <br />
-              <span className="text-primary italic">{t("cta.titleAccent")}</span>
-            </h2>
-            <p className="text-xl text-muted-foreground mb-10 font-light leading-relaxed">
-              {t("cta.desc")}
-            </p>
-            <a href="mailto:contact@solutiontgv.com" className="bg-primary text-primary-foreground px-10 py-5 text-lg font-bold tracking-wide hover:bg-primary/90 transition-all inline-flex items-center gap-3 group">
-              {t("cta.btn")}
-              <Mail size={20} className="group-hover:scale-110 transition-transform" />
-            </a>
-          </div>
+          <ContactForm />
         </div>
       </section>
 

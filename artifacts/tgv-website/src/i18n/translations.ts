@@ -62,6 +62,17 @@ export const translations = {
       desc: "Associez-vous à Solution TGV pour donner vie à votre vision avec une excellence technique inégalée.",
       btn: "Commencer la discussion"
     },
+    form: {
+      name: "Nom complet",
+      company: "Entreprise (facultatif)",
+      email: "Adresse courriel",
+      phone: "Téléphone (facultatif)",
+      message: "Décrivez votre projet",
+      submit: "Envoyer la demande",
+      submitting: "Envoi en cours…",
+      success: "Message envoyé. Nous vous répondrons sous 24 heures.",
+      error: "Une erreur est survenue. Veuillez réessayer ou nous écrire directement."
+    },
     footer: {
       tagline: "L'excellence en ingénierie logicielle pour les entreprises exigeantes.",
       contact: "Contact",
@@ -134,6 +145,17 @@ export const translations = {
       titleAccent: "technology?",
       desc: "Partner with Solution TGV to bring your vision to life with unparalleled engineering excellence.",
       btn: "Start the Conversation"
+    },
+    form: {
+      name: "Full name",
+      company: "Company (optional)",
+      email: "Email address",
+      phone: "Phone (optional)",
+      message: "Describe your project",
+      submit: "Send Request",
+      submitting: "Sending…",
+      success: "Message sent. We'll get back to you within 24 hours.",
+      error: "Something went wrong. Please try again or email us directly."
     },
     footer: {
       tagline: "Software engineering excellence for demanding enterprises.",
