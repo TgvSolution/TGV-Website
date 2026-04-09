@@ -63,6 +63,7 @@ export function ContactForm() {
           <p>request@tgvsolution.ca</p>
           <p>Québec, Canada</p>
         </div>
+
       </motion.div>
 
       {/* Right — form */}

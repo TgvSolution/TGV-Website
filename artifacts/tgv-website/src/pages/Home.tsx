@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Menu, X, Code, Shield, Server, CheckCircle2, ChevronRight, Mail, Phone, MapPin } from "lucide-react";
+import { Menu, X, Code, Shield, Server, CheckCircle2, ChevronRight, Mail, MapPin } from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
 import { ContactForm } from "../components/ContactForm";
 
@@ -332,10 +332,7 @@ export default function Home() {
               <h4 className="font-bold uppercase tracking-wider mb-6 text-sm">{t("footer.contact")}</h4>
               <ul className="space-y-4 text-muted-foreground font-light">
                 <li className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer">
-                  <Mail size={16} /> contact@solutiontgv.com
-                </li>
-                <li className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer">
-                  <Phone size={16} /> +1 (800) 555-0199
+                  <Mail size={16} /> request@tgvsolution.ca
                 </li>
                 <li className="flex items-center gap-3 hover:text-primary transition-colors cursor-pointer">
                   <MapPin size={16} /> {t("footer.address")}
