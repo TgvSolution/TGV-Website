@@ -249,10 +249,9 @@ export default function Home() {
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              className="order-1 lg:order-2 relative aspect-[4/3] group overflow-hidden border border-border"
+              className="order-1 lg:order-2 relative group border border-border bg-[#0a0f1e] p-6 flex items-center justify-center"
             >
-              <div className="absolute inset-0 bg-primary/20 mix-blend-overlay group-hover:opacity-0 transition-opacity duration-700 z-10" />
-              <img src="/images/securfich-illustration.png" alt="SecurFich Interface" className="w-full h-full object-cover object-center transition-all duration-700 scale-105 group-hover:scale-100" />
+              <img src="/images/securfich-illustration.png" alt="SecurFich Interface" className="w-full h-auto object-contain transition-all duration-700" />
             </motion.div>
           </div>
 
