@@ -252,7 +252,7 @@ export default function Home() {
               className="order-1 lg:order-2 relative aspect-[4/3] group overflow-hidden border border-border"
             >
               <div className="absolute inset-0 bg-primary/20 mix-blend-overlay group-hover:opacity-0 transition-opacity duration-700 z-10" />
-              <img src="/images/tgv-securfich.png" alt="SecurFich Interface" className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100" />
+              <img src="/images/securfich-illustration.png" alt="SecurFich Interface" className="w-full h-full object-cover object-center transition-all duration-700 scale-105 group-hover:scale-100" />
             </motion.div>
           </div>
 
