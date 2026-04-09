@@ -351,10 +351,6 @@ export default function Home() {
           
           <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <p>{t("footer.rights")}</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-primary transition-colors">GitHub</a>
-            </div>
           </div>
         </div>
       </footer>
