@@ -1,0 +1,92 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "4PzSOkNHb5iCDgaVW2hrD"
+uri = "file://artifacts/mockup-sandbox/public/images/hero-light.png"
+type = "image"
+title = "Abstract light architecture hero"
+
+[[generated]]
+id = "oB4XO4x9xyjqYkF8A78XD"
+uri = "file://artifacts/mockup-sandbox/public/images/tempett-ui.png"
+type = "image"
+title = "Abstract software UI light"
+
+[[generated]]
+id = "XYRuNEBoE_Nz5TGFh10C1"
+uri = "file://artifacts/mockup-sandbox/public/images/securfich-ui.png"
+type = "image"
+title = "Secure document portal UI"
+
+[[generated]]
+id = "s7ZqXeEdmFFWf3iHmL326"
+uri = "file://artifacts/mockup-sandbox/public/images/office-light.png"
+type = "image"
+title = "Professional team office"
+
+[[generated]]
+id = "ubEZphGKyxwNyphPDJDDz"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-hero.png"
+type = "image"
+title = "Hero dark glass amber light"
+
+[[generated]]
+id = "0PxHWCZtk1BIgFCIELgFI"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-custom-dev.png"
+type = "image"
+title = "Custom dev dark interface"
+
+[[generated]]
+id = "eu505TSg4QpTxQ_ZnyZP8"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-securfich.png"
+type = "image"
+title = "Abstract security gold lines"
+
+[[generated]]
+id = "xynxyP1RbsrnOf1MQRE-8"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-tempett.png"
+type = "image"
+title = "Abstract web app nodes"
+
+[[generated]]
+id = "4P62P4BUtMGC1oGn-EbPz"
+uri = "file://artifacts/mockup-sandbox/public/images/hero-bg.png"
+type = "image"
+title = "dark luxury abstract background with gold lines"
+
+[[generated]]
+id = "uIR2nka2goge9zNbQ9NuO"
+uri = "file://artifacts/mockup-sandbox/public/images/securfich-concept.png"
+type = "image"
+title = "secure digital vault concept"
+
+[[generated]]
+id = "iZsOAckTLLVTd9A0Eapud"
+uri = "file://artifacts/mockup-sandbox/public/images/tempett-concept.png"
+type = "image"
+title = "abstract web app architecture"
+
+[[generated]]
+id = "JSWbJl7yN5HB-_FbJRfO8"
+uri = "file://artifacts/mockup-sandbox/public/images/boardroom-bg.png"
+type = "image"
+title = "dark minimal corporate boardroom"
+
+[[generated]]
+id = "0c8uUZYHyaeM1U_UrvIph"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-hero-abstract.png"
+type = "image"
+title = "Abstract gold geometric lines on black"
+
+[[generated]]
+id = "auRG1pm7GgY3oAzWu4Ha-"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-securfich-mockup.png"
+type = "image"
+title = "Secure document portal mockup"
+
+[[generated]]
+id = "Wo5K7y-sbNSK6pWADqMoC"
+uri = "file://artifacts/mockup-sandbox/public/images/tgv-tempett-mockup.png"
+type = "image"
+title = "Web application dashboard mockup"
