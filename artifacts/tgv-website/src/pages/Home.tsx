@@ -261,10 +261,9 @@ export default function Home() {
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              className="relative aspect-[4/3] group overflow-hidden border border-border"
+              className="relative group border border-border bg-[#0a0f1e] p-6 flex items-center justify-center"
             >
-              <div className="absolute inset-0 bg-primary/20 mix-blend-overlay group-hover:opacity-0 transition-opacity duration-700 z-10" />
-              <img src="/images/tgv-tempett.png" alt="Tempett Interface" className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100" />
+              <img src="/images/tempett-dashboard.png" alt="Tempett GPS Route Management" className="w-full h-auto object-contain transition-all duration-700" />
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, x: 30 }}

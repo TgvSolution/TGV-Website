@@ -90,3 +90,9 @@ id = "Wo5K7y-sbNSK6pWADqMoC"
 uri = "file://artifacts/mockup-sandbox/public/images/tgv-tempett-mockup.png"
 type = "image"
 title = "Web application dashboard mockup"
+
+[[generated]]
+id = "gFcd9i9n-PNxGG8hmrkYq"
+uri = "file://artifacts/tgv-website/public/images/tempett-dashboard.png"
+type = "image"
+title = "generated_image"

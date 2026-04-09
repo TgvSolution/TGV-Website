@@ -48,11 +48,11 @@ export const translations = {
         cta: "Découvrir SecurFich"
       },
       tempett: {
-        subtitle: "Applications Web Haute Performance",
-        desc: "Notre plateforme de démonstration pour des interfaces utilisateur intuitives adossées à des systèmes dorsaux robustes et conçus pour l'échelle.",
-        f1: "Architecture moderne et réactive",
-        f2: "Optimisation des performances extrêmes",
-        f3: "Design centré sur l'utilisateur",
+        subtitle: "Gestion d'opérations de déneigement",
+        desc: "Une solution complète pour les entreprises de déneigement : gestion des contrats clients, notifications SMS automatisées, propositions de services additionnels et gestion intelligente des routes par GPS.",
+        f1: "Gestion des contrats et des clients",
+        f2: "Notifications SMS & services additionnels",
+        f3: "Gestion des routes avec GPS en temps réel",
         cta: "Découvrir Tempett"
       }
     },
@@ -121,11 +121,11 @@ export const translations = {
         cta: "Discover SecurFich"
       },
       tempett: {
-        subtitle: "High-Performance Web Applications",
-        desc: "Our demonstration platform for intuitive UIs backed by robust backend systems, designed for scale.",
-        f1: "Modern, reactive architecture",
-        f2: "Extreme performance optimization",
-        f3: "User-centric design",
+        subtitle: "Snow Removal Operations Management",
+        desc: "A complete solution for snow removal companies: client contract management, automated SMS notifications, additional service proposals, and intelligent GPS-based route management.",
+        f1: "Contract & client management",
+        f2: "SMS notifications & upsell services",
+        f3: "Real-time GPS route management",
         cta: "Discover Tempett"
       }
     },
