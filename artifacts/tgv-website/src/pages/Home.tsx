@@ -1,5 +1,13 @@
-import { useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useInView,
+  useMotionValue,
+  animate,
+  type Variants,
+} from "framer-motion";
 import {
   Menu,
   X,
@@ -14,14 +22,155 @@ import {
 import { useLanguage } from "../hooks/useLanguage";
 import { ContactForm } from "../components/ContactForm";
 
+/** Describes a stat entry with its animated numeric part isolated from its label. */
+interface ParsedStat {
+  prefix: string;
+  numericValue: number;
+  suffix: string;
+  label: string;
+}
+
+/**
+ * Attempts to parse a leading numeric value from a stat string.
+ * Handles formats like "100% Client Satisfaction" or "99.9% Uptime".
+ * Returns null if no leading number is found (e.g. "AES-256 Encryption").
+ *
+ * @param stat - The full stat string from translations
+ * @returns Parsed parts or null if non-numeric format
+ */
+function parseStatString(stat: string): ParsedStat | null {
+  const match = stat.match(/^(\d+(?:\.\d+)?)(%?)\s*(.*)/);
+  if (!match) return null;
+  return {
+    prefix: "",
+    numericValue: parseFloat(match[1]),
+    suffix: match[2],
+    label: match[3],
+  };
+}
+
+/** Props for the animated count-up number component. */
+interface AnimatedCountProps {
+  value: number;
+  suffix: string;
+  isInView: boolean;
+}
+
+/**
+ * Renders a count-up animation from 0 to the target value using framer-motion's
+ * `animate` imperative API. Triggers once when the parent enters the viewport.
+ *
+ * @param value - Target numeric value to count up to
+ * @param suffix - Character appended after the number (e.g. "%")
+ * @param isInView - Whether the containing element is currently visible
+ */
+function AnimatedCount({ value, suffix, isInView }: AnimatedCountProps) {
+  const motionValue = useMotionValue(0);
+  const displayRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    const controls = animate(motionValue, value, {
+      duration: 1.6,
+      ease: "easeOut",
+      onUpdate: (latest) => {
+        if (displayRef.current) {
+          const formatted =
+            value % 1 !== 0 ? latest.toFixed(1) : Math.round(latest).toString();
+          displayRef.current.textContent = formatted + suffix;
+        }
+      },
+    });
+
+    return () => controls.stop();
+  }, [isInView, value, suffix, motionValue]);
+
+  return (
+    <span ref={displayRef} className="font-bold text-lg">
+      0{suffix}
+    </span>
+  );
+}
+
+/** Props for the magnetic CTA button/link wrapper. */
+interface MagneticWrapperProps {
+  children: React.ReactNode;
+  className?: string;
+  href: string;
+}
+
+/**
+ * Wraps a link with a subtle magnetic hover effect.
+ * Tracks mouse position relative to the element center and applies a bounded
+ * translate offset (max ±6px). Resets on mouse leave.
+ *
+ * @param children - Link content
+ * @param className - Additional CSS classes forwarded to the motion element
+ * @param href - Anchor destination
+ */
+function MagneticWrapper({ children, className, href }: MagneticWrapperProps) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const ref = useRef<HTMLAnchorElement>(null);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const offsetX = ((e.clientX - centerX) / (rect.width / 2)) * 6;
+      const offsetY = ((e.clientY - centerY) / (rect.height / 2)) * 6;
+      x.set(offsetX);
+      y.set(offsetY);
+    },
+    [x, y],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    animate(x, 0, { type: "spring", stiffness: 300, damping: 25 });
+    animate(y, 0, { type: "spring", stiffness: 300, damping: 25 });
+  }, [x, y]);
+
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      style={{ x, y }}
+      className={className}
+      whileTap={{ scale: 0.97 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.a>
+  );
+}
+
 export default function Home() {
   const { t, lang, setLang } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [titleAnimationDone, setTitleAnimationDone] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  const statsRef = useRef<HTMLDivElement>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
+
+  const logoRef = useRef<HTMLDivElement>(null);
+  const logoHasAnimated = useRef<boolean>(false);
+
+  useEffect(() => {
+    const alreadyPlayed = sessionStorage.getItem("tgv-logo-animated");
+    if (alreadyPlayed) {
+      logoHasAnimated.current = true;
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +180,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const fadeIn = {
+  const fadeIn: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -40,13 +189,20 @@ export default function Home() {
     },
   };
 
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: { staggerChildren: 0.2 },
     },
   };
+
+  const shouldSkipLogoAnimation = logoHasAnimated.current;
+
+  function handleLogoAnimationComplete() {
+    sessionStorage.setItem("tgv-logo-animated", "1");
+    logoHasAnimated.current = true;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground overflow-hidden">
@@ -56,11 +212,15 @@ export default function Home() {
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-none overflow-hidden">
-              <img
+            <div ref={logoRef} className="relative w-10 h-10 rounded-none overflow-hidden">
+              <motion.img
                 src="/images/logo.png"
                 alt="Solution TGV Logo"
                 className="w-full h-full object-contain"
+                initial={shouldSkipLogoAnimation ? false : { clipPath: "inset(0 100% 0 0)" }}
+                animate={{ clipPath: "inset(0 0% 0 0)" }}
+                transition={{ duration: 1.2, ease: "easeInOut", delay: 0.3 }}
+                onAnimationComplete={handleLogoAnimationComplete}
               />
             </div>
             <span className="font-serif font-bold text-xl tracking-wide group-hover:text-primary transition-colors">
@@ -104,12 +264,12 @@ export default function Home() {
               </button>
             </div>
 
-            <a
+            <MagneticWrapper
               href="#contact"
-              className="bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold tracking-wide hover:bg-primary/90 transition-all active:scale-95 border border-primary"
+              className="bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold tracking-wide hover:bg-primary/90 transition-all border border-primary inline-block"
             >
               {t("nav.contact")}
-            </a>
+            </MagneticWrapper>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -209,9 +369,12 @@ export default function Home() {
             <motion.h1
               variants={fadeIn}
               className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium leading-[1.1] tracking-tight mb-6"
+              onAnimationComplete={() => setTitleAnimationDone(true)}
             >
               {t("hero.title1")} <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#E8D099] italic">
+              <span
+                className={`text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#E8D099] italic${titleAnimationDone ? " hero-title-cursor" : ""}`}
+              >
                 {t("hero.title2")}
               </span>
             </motion.h1>
@@ -227,7 +390,7 @@ export default function Home() {
               variants={fadeIn}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <a
+              <MagneticWrapper
                 href="#contact"
                 className="bg-primary text-primary-foreground px-8 py-4 font-bold tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 group"
               >
@@ -236,13 +399,13 @@ export default function Home() {
                   size={18}
                   className="group-hover:translate-x-1 transition-transform"
                 />
-              </a>
-              <a
+              </MagneticWrapper>
+              <MagneticWrapper
                 href="#products"
                 className="border border-border bg-background/50 backdrop-blur-sm px-8 py-4 font-medium tracking-wide hover:border-primary/50 hover:bg-white/5 transition-all text-center"
               >
                 {t("hero.cta2")}
-              </a>
+              </MagneticWrapper>
             </motion.div>
           </motion.div>
         </div>
@@ -285,6 +448,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: "0 8px 32px 0 hsla(38, 50%, 74%, 0.13)",
+                  transition: { type: "spring", stiffness: 300, damping: 25 },
+                }}
                 className="group border border-border bg-background p-8 hover:border-primary/50 transition-colors duration-500 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors duration-500" />
@@ -307,19 +475,41 @@ export default function Home() {
       {/* Stats Bar */}
       <section className="py-12 border-y border-border bg-background">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 divide-x-0 md:divide-x divide-border">
+          <div
+            ref={statsRef}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 divide-x-0 md:divide-x divide-border"
+          >
             {[t("stats.s1"), t("stats.s2"), t("stats.s3"), t("stats.s4")].map(
-              (stat, i) => (
-                <div
-                  key={i}
-                  className="text-center px-4 flex flex-col items-center justify-center gap-2"
-                >
-                  <CheckCircle2 size={24} className="text-primary" />
-                  <span className="font-medium tracking-wide text-sm md:text-base">
-                    {stat}
-                  </span>
-                </div>
-              ),
+              (stat, i) => {
+                const parsed = parseStatString(stat);
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={statsInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className="text-center px-4 flex flex-col items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 size={24} className="text-primary" />
+                    {parsed ? (
+                      <span className="font-medium tracking-wide text-sm md:text-base">
+                        <AnimatedCount
+                          value={parsed.numericValue}
+                          suffix={parsed.suffix}
+                          isInView={statsInView}
+                        />
+                        {parsed.label && (
+                          <span className="ml-1">{parsed.label}</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="font-medium tracking-wide text-sm md:text-base">
+                        {stat}
+                      </span>
+                    )}
+                  </motion.div>
+                );
+              },
             )}
           </div>
         </div>
@@ -361,10 +551,17 @@ export default function Home() {
                   t("products.securfich.f2"),
                   t("products.securfich.f3"),
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className="flex items-start gap-3"
+                  >
                     <span className="text-primary mt-1">✦</span>
                     <span className="font-light">{feature}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
               <a
@@ -377,9 +574,10 @@ export default function Home() {
               </a>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: 30, scale: 0.96 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="order-1 lg:order-2 relative group border border-border bg-[#0a0f1e] p-6 flex items-center justify-center"
             >
               <img
@@ -393,9 +591,10 @@ export default function Home() {
           {/* Tempett */}
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: -30, scale: 0.96 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative group border border-border bg-[#0a0f1e] p-6 flex items-center justify-center"
             >
               <img
@@ -422,10 +621,17 @@ export default function Home() {
                   t("products.tempett.f2"),
                   t("products.tempett.f3"),
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className="flex items-start gap-3"
+                  >
                     <span className="text-primary mt-1">✦</span>
                     <span className="font-light">{feature}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
               <a
