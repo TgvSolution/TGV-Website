@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"\nconst fs = require('fs');\nconst args = process.argv.slice(1);\nconst toolInput = JSON.parse(process.env.CLAUDE_TOOL_INPUT || '{}');\nconst file = toolInput.file_path || toolInput.path || '';\nconst skip = ['.md', '.json', '.env', '.gitignore', '.prettierrc', '.eslintrc'];\nconst isDoc = skip.some(ext => file.endsWith(ext));\nconst isSrc = file.includes('/src/') || file.includes('/tests/') || file.includes('/db/');\nif (isSrc && !isDoc) {\n  console.error('\\n📋 RAPPEL DOCUMENTATION\\n' +\n    'Fichier modifié : ' + file + '\\n' +\n    '─────────────────────────────────────────\\n' +\n    'Avant de terminer cette tâche, assure-toi de :\\n' +\n    '  1. Mettre à jour DEVLOG.md (ajouts, retraits, modifications)\\n' +\n    '  2. Ajouter/mettre à jour les JSDoc sur les fonctions modifiées\\n' +\n    '  3. Noter dans docs/future-work.md si tu identifies des améliorations\\n' +\n    '  4. Mettre à jour .env.example si une variable a changé\\n' +
+    '  5. Ajouter dans BUGS.md si un bug non bloquant a été identifié\\n' +\n    '─────────────────────────────────────────');\n}\n\""
+          }
+        ]
+      }
+    ]
+  }
+}

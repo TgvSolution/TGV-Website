@@ -1,0 +1,83 @@
+name: Deploy — Staging (Azure)
+
+on:
+  push:
+    branches: [develop]
+
+# Annule les déploiements en cours si un nouveau push arrive
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy-staging:
+    name: Deploy to Azure App Service (Staging)
+    runs-on: ubuntu-latest
+    environment: staging   # Environnement GitHub avec ses propres secrets
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Build
+        run: npm run build
+
+      # Option A : Déploiement direct App Service (sans Docker)
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to App Service (Staging)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME_STAGING }}
+          package: .
+
+      # Option B : Déploiement via image Docker (décommenter si conteneurisé)
+      # - name: Login to Azure Container Registry
+      #   uses: azure/docker-login@v1
+      #   with:
+      #     login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+      #     username: ${{ secrets.ACR_USERNAME }}
+      #     password: ${{ secrets.ACR_PASSWORD }}
+      #
+      # - name: Build and push Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/app:staging-${{ github.sha }} .
+      #     docker push ${{ secrets.ACR_LOGIN_SERVER }}/app:staging-${{ github.sha }}
+      #
+      # - name: Deploy to Container App (Staging)
+      #   uses: azure/container-apps-deploy-action@v1
+      #   with:
+      #     resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      #     containerAppName: ${{ secrets.AZURE_CONTAINER_APP_STAGING }}
+      #     imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/app:staging-${{ github.sha }}
+
+      - name: Run post-deploy health check
+        run: |
+          echo "Waiting for app to start..."
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.STAGING_URL }}/health)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed — HTTP $STATUS"
+            exit 1
+          fi
+          echo "✅ Staging is healthy (HTTP $STATUS)"
+
+# Secrets requis dans l'environnement GitHub "staging" :
+# AZURE_CREDENTIALS          → Service principal JSON (az ad sp create-for-rbac)
+# AZURE_WEBAPP_NAME_STAGING  → Nom de l'App Service staging
+# AZURE_RESOURCE_GROUP       → Resource group Azure
+# STAGING_URL                → URL de base du staging (ex: https://monapp-staging.azurewebsites.net)
+#
+# Configurer dans : GitHub repo → Settings → Environments → staging → Secrets
