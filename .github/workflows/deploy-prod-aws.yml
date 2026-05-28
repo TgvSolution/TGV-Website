@@ -1,0 +1,119 @@
+name: Deploy — Production (AWS ECS)
+
+# Utilise ce fichier à la place de deploy-prod.yml si tu déploies sur AWS
+# Renommer en deploy-prod.yml et supprimer l'autre
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  ci-check:
+    name: CI Gate
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint . --ext .ts,.js --max-warnings 0
+      - run: npm run db:migrate
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+      - run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+
+  deploy-production:
+    name: Deploy to AWS ECS (Production)
+    runs-on: ubuntu-latest
+    needs: ci-check
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          # Recommandé : remplacer par OIDC fédéré (plus sécurisé, pas de clés longue durée)
+          # role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ secrets.ECS_TASK_DEFINITION }}
+          container-name: ${{ secrets.CONTAINER_NAME }}
+          image: ${{ steps.build.outputs.image }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.ECS_SERVICE }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Health check
+        run: |
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.PROD_URL }}/health)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed — HTTP $STATUS"
+            exit 1
+          fi
+          echo "✅ Production healthy (HTTP $STATUS)"
+
+# Secrets requis dans l'environnement GitHub "production" :
+# AWS_ACCESS_KEY_ID         → Clé IAM (ou configurer OIDC)
+# AWS_SECRET_ACCESS_KEY     → Secret IAM
+# AWS_REGION                → ex: ca-central-1
+# ECR_REPOSITORY            → Nom du repo ECR
+# ECS_TASK_DEFINITION       → Nom de la task definition ECS
+# ECS_SERVICE               → Nom du service ECS
+# ECS_CLUSTER               → Nom du cluster ECS
+# CONTAINER_NAME            → Nom du container dans la task definition
+# PROD_URL                  → URL de production
